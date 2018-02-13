@@ -14,11 +14,12 @@ function save(result)
     bitser.dumpLoveFile(filename, stats)
 end
 
-function show()
-end
 
 function update_square(dt)
     SPEED = 50
+    if love.keyboard.isDown('lshift') then
+        SPEED = 200
+    end
     if love.keyboard.isDown("right") then
         player_square.width = player_square.width + dt*SPEED
     elseif love.keyboard.isDown("left") then
@@ -93,6 +94,10 @@ end
 
 
 function love.keypressed( key, scancode, isrepeat )
+    if scancode == "s" then
+        show()
+    end
+
     if scancode == "space" then
         if player_state == PLAY then
             result=TYPES[TRAINING_TYPE].EVALUATE()
@@ -104,6 +109,13 @@ function love.keypressed( key, scancode, isrepeat )
             player_state = PLAY
         end
     end
+end
+function show()
+    filename = FILENAME
+    local bitser = require "bitser"
+    assert(love.filesystem.exists(filename))
+    stats = bitser.loadLoveFile(filename)
+    for key,value in pairs(stats) do print(string.format('%s,%s,%s', key,value.type, value.reference.width)) end
 end
 
 function evaluate_square()
