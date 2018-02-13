@@ -1,5 +1,5 @@
 function save(result)
-    filename = "stats.bin"
+    filename = FILENAME
     print(string.format("saving results to %s", filename))
     local bitser = require "bitser"
     if love.filesystem.exists(filename) then
@@ -12,6 +12,9 @@ function save(result)
     print(string.format('%s %-10s %-10s', result.timestamp, result.distance, result.type))
     --for key,value in pairs(stats) do print(string.format('%s %-10s %-10s', key,value.distance, value.type)) end
     bitser.dumpLoveFile(filename, stats)
+end
+
+function show()
 end
 
 function update_square(dt)
@@ -36,6 +39,7 @@ function set_square()
 end
 
 function love.load()
+    FILENAME = "stats.bin"
     BORDER = 10
     WIDTH, HEIGHT = love.graphics.getDimensions( )
     SIZE = math.floor((math.min(WIDTH, HEIGHT)-BORDER)/2)
@@ -43,15 +47,25 @@ function love.load()
     WHITE = {255, 255,255 }
     PLAY='PLAY'
     EVALUATE='EVALUATE'
-    --Drawing stuff
-    --love.graphics.setColor(255,255,255) -- reset colours
+    REFERENCE_POSITION ={x=1,y=1}
     state2color = {PLAY=WHITE, EVALUATE=RED}
-    state2pos =   {PLAY={x=SIZE, y=SIZE}, EVALUATE={x=1,y=1}}
     state2next =  {PLAY=EVALUATE, EVALUATE=PLAY}
-    state2update = {EVALUATE=update_noop, PLAY=update_square}
 
+    SQUARE='SQUARE'
+    TRAINING_TYPE = SQUARE
+
+    TYPES = {
+        SQUARE={
+            SET=set_square,
+            UPDATE={EVALUATE=update_noop, PLAY=update_square},
+            DRAW=draw_square,
+            EVALUATE=evaluate_square,
+        }
+    }
+
+    --state2update = {EVALUATE=update_noop, PLAY=update_square}
     player_state = 'PLAY'
-    set_square()
+    TYPES[TRAINING_TYPE].SET()
 end
 
 metasquare = {}
@@ -81,11 +95,12 @@ end
 function love.keypressed( key, scancode, isrepeat )
     if scancode == "space" then
         if player_state == PLAY then
-            result=evaluate_square()
+            result=TYPES[TRAINING_TYPE].EVALUATE()
             save(result)
             player_state = EVALUATE
         elseif player_state == EVALUATE then
             set_square()
+            TYPES[TRAINING_TYPE].SET()
             player_state = PLAY
         end
     end
@@ -121,12 +136,8 @@ function evaluate_square()
    return stats 
 end
 
-
-function love.update(dt)
-    state2update[player_state](dt)
-end
-
 function draw_square()
+    state2pos =   {PLAY={x=SIZE, y=SIZE}, EVALUATE=REFERENCE_POSITION}
     love.graphics.setColor(WHITE)
     love.graphics.rectangle("line", 1, 1, reference_square.width, reference_square.height)
     color = state2color[player_state]
@@ -135,6 +146,12 @@ function draw_square()
     love.graphics.rectangle("line", pos.x, pos.y , player_square.width, player_square.height)
 end
 
+
+function love.update(dt)
+    TYPES[TRAINING_TYPE].UPDATE[player_state](dt)
+end
+
+
 function love.draw()
-    draw_square()
+    TYPES[TRAINING_TYPE].DRAW()
 end
