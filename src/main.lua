@@ -1,22 +1,24 @@
 function save(result)
     filename = FILENAME
-    print(string.format("saving results to %s", filename))
-    local bitser = require "bitser"
+    local json = require "json"
     if love.filesystem.exists(filename) then
-        stats = bitser.loadLoveFile(filename)
+        txt = love.filesystem.read(filename)
+        stats = json.decode(txt) 
     else
         print("no stats available")
         stats = {}
     end
-    stats[result.timestamp] = result
-    print(string.format('%s %-10s %-10s', result.timestamp, result.distance, result.type))
-    --for key,value in pairs(stats) do print(string.format('%s %-10s %-10s', key,value.distance, value.type)) end
-    bitser.dumpLoveFile(filename, stats)
+    stats[#stats+1] = result
+    --print(string.format('%s %-10s %-10s', result.timestamp, result.distance, result.type))
+    -- for key,value in ipairs(stats) do print(string.format('%s %-10s %-10s', value.timestamp ,value.distance, value.type)) end
+    --bitser.dumpLoveFile(filename, stats)
+    txt=json.encode(stats)
+    love.filesystem.write(filename, txt, string.len(txt))
 end
 
 
 function update_square(dt)
-    SPEED = 50
+    SPEED = 30 
     if love.keyboard.isDown('lshift') then
         SPEED = 200
     end
@@ -39,8 +41,14 @@ function set_square()
     player_square = makeSquare()
 end
 
+function set_circle()
+    reference_circle = makeRandomCircle()
+    player_circle = makeCircle()
+end
+
 function love.load()
-    FILENAME = "stats.bin"
+    FILENAME = "stats.json"
+    --normalize()
     BORDER = 10
     WIDTH, HEIGHT = love.graphics.getDimensions( )
     SIZE = math.floor((math.min(WIDTH, HEIGHT)-BORDER)/2)
@@ -61,6 +69,12 @@ function love.load()
             UPDATE={EVALUATE=update_noop, PLAY=update_square},
             DRAW=draw_square,
             EVALUATE=evaluate_square,
+        },
+        CIRCLE={
+            SET=set_circle,
+            UPDATE={EVALUATE=update_noop, PLAY=update_circle},
+            DRAW=draw_circle,
+            EVALUATE=evaluate_circle,
         }
     }
 
@@ -85,12 +99,19 @@ function makeRandomSquare()
     return sqr
 end
 
+function makeRandomCircle()
+    return {radius= love.math.random(50, SIZE)}
+end
+
 function makeSquare()
     sqr= { height = 50 ,width = 50}
     setmetatable(sqr, metasquare)
     return sqr
 end
 
+function makeCircle()
+    return {radius= 50}
+end
 
 
 function love.keypressed( key, scancode, isrepeat )
@@ -104,7 +125,6 @@ function love.keypressed( key, scancode, isrepeat )
             save(result)
             player_state = EVALUATE
         elseif player_state == EVALUATE then
-            set_square()
             TYPES[TRAINING_TYPE].SET()
             player_state = PLAY
         end
@@ -115,7 +135,9 @@ function show()
     local bitser = require "bitser"
     assert(love.filesystem.exists(filename))
     stats = bitser.loadLoveFile(filename)
-    for key,value in pairs(stats) do print(string.format('%s,%s,%s', key,value.type, value.reference.width)) end
+    for key,m in pairs(stats) do 
+        --print(string.format('%s,%s', key, ds/s )) 
+    end
 end
 
 function evaluate_square()
@@ -128,6 +150,11 @@ function evaluate_square()
         diff=diff,
         distance=math.sqrt(diff.width^2 + diff.height^2)
     }
+    m = stats
+    ds = m.reference.width * math.abs(m.actual.height - m.reference.height) +
+        m.reference.height * math.abs(m.actual.width - m.reference.width) 
+    s = m.reference.width * m.reference.height
+    stats.normalized_error =  ds/s
     if stats.diff.width > 0 then
         print(string.format("Rectangle too wide by %s pixels", stats.diff.width))  
     else
@@ -138,6 +165,7 @@ function evaluate_square()
     else
         print(string.format("Rectangle too short by %s pixels", stats.diff.height))  
     end
+    print(string.format("error %s %%", math.floor(stats.normalized_error*100))) 
 
     print(string.format("%s: diff width/height %s/%s. Distance %s",  
         stats.timestamp,
