@@ -11,8 +11,17 @@ function get_stats()
     return stats
 end
 
+function get_system_id()
+   local name, version, vendor, device = love.graphics.getRendererInfo( ) 
+   local wwidth, wheight, flags = love.window.getMode()
+   local width, height = love.window.getDesktopDimensions(flags.display)
+   local scale = love.window.getPixelScale( )
+   return string.format('%s %sx%s %s %sx%s', version, width, height, scale, wwidth, wheight)
+end
+
 function save(result)
     local JSON = require "JSON"
+    result.system_id = get_system_id()
     stats = get_stats()
     filename = FILENAME
     if result == nil then
@@ -20,6 +29,9 @@ function save(result)
         return
     end
     stats[#stats+1] = result
+    --for key,value in ipairs(stats) do
+    --    value.system_id = result.system_id 
+    --end
     print(string.format("%s values saved", #stats))
     --print(string.format('%s %-10s %-10s', result.timestamp, result.distance, result.type))
     -- for key,value in ipairs(stats) do print(string.format('%s %-10s %-10s', value.timestamp ,value.distance, value.type)) end
@@ -113,7 +125,6 @@ function love.load()
     CIRCLE='CIRCLE'
     PROPORTION='PROPORTION'
 
-    local circle = require 'circle'
 
     TYPES = {
         SQUARE={
