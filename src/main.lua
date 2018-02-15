@@ -38,8 +38,7 @@ function save(result)
     --bitser.dumpLoveFile(filename, stats)
     --JSON = assert(loadfile "JSON.lua")()
     txt = JSON:encode_pretty(stats)
-    print("No Save")
-    --love.filesystem.write(filename, txt, string.len(txt))
+    love.filesystem.write(filename, txt, string.len(txt))
 end
 
 
@@ -65,42 +64,22 @@ function love.load()
     state2color = {PLAY=WHITE, EVALUATE=RED}
     state2next =  {PLAY=EVALUATE, EVALUATE=PLAY}
 
-    SQUARE='SQUARE'
-    CIRCLE='CIRCLE'
-    PROPORTION='PROPORTION'
 
     local circle = require('circle')
     local square = require('square')
     local proportion = require('proportion')
-    TYPES = {
-        SQUARE={
-            SET=square.set,
-            UPDATE={EVALUATE=update_noop, PLAY=square.update},
-            DRAW=square.draw,
-            EVALUATE=square.evaluate,
-        },
-        CIRCLE={
-            SET=circle.set,
-            UPDATE={EVALUATE=update_noop, PLAY=circle.update},
-            DRAW=circle.draw,
-            EVALUATE=circle.evaluate,
-        },
-        PROPORTION={
-            SET=proportion.set,
-            UPDATE={EVALUATE=update_noop, PLAY=proportion.update},
-            DRAW=proportion.draw,
-            EVALUATE=proportion.evaluate,
-        }}
-    TYPES_LIST = {SQUARE, CIRCLE, PROPORTION}
+
+    
+    TRAINING_TYPES = {square, circle, proportion}
 
     player_state = 'PLAY'
-    TRAINING_TYPE = SQUARE
+    TRAINING_TYPE = square
     state_init()
 end
 
 function state_init()
     player_state = 'PLAY'
-    TYPES[TRAINING_TYPE].SET()
+    TRAINING_TYPE.set()
 end
 
 metasquare = {}
@@ -166,11 +145,11 @@ function love.keypressed( key, scancode, isrepeat )
 
     if scancode == "space" then
         if player_state == PLAY then
-            result=TYPES[TRAINING_TYPE].EVALUATE()
+            result=TRAINING_TYPE.evaluate()
             save(result)
             player_state = EVALUATE
         elseif player_state == EVALUATE then
-            TYPES[TRAINING_TYPE].SET(SIZE)
+            TRAINING_TYPE.set()
             player_state = PLAY
         end
     end
@@ -178,13 +157,10 @@ function love.keypressed( key, scancode, isrepeat )
     if num==nil then
         return
     end
-    type_ = TRAINING_TYPE
-    TRAINING_TYPE=TYPES_LIST[num]
-    if TRAINING_TYPE==nil then
-        TRAINING_TYPE=type_
-        return
+    if TRAINING_TYPES[num]~= nil then
+        TRAINING_TYPE = TRAINING_TYPES[num]
+        state_init()
     end
-    state_init()
 end
 
 
@@ -192,12 +168,16 @@ end
 
 
 function love.update(dt)
-    TYPES[TRAINING_TYPE].UPDATE[player_state](dt)
+    if player_state == PLAY then
+        TRAINING_TYPE.update(dt)
+    else
+        update_noop()
+    end
 end
 
 
 function love.draw()
-    TYPES[TRAINING_TYPE].DRAW()
+    TRAINING_TYPE.draw()
 end
 
 
