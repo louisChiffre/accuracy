@@ -1,9 +1,9 @@
 function get_stats()
     filename = FILENAME
-    local json = require "json"
+    local JSON = require "JSON"
     if love.filesystem.exists(filename) then
         txt = love.filesystem.read(filename)
-        stats = json.decode(txt) 
+        stats = JSON:decode(txt) 
     else
         print("no stats available")
         stats = {}
@@ -12,7 +12,7 @@ function get_stats()
 end
 
 function save(result)
-    local json = require "json"
+    local JSON = require "JSON"
     stats = get_stats()
     filename = FILENAME
     if result == nil then
@@ -24,9 +24,11 @@ function save(result)
     --print(string.format('%s %-10s %-10s', result.timestamp, result.distance, result.type))
     -- for key,value in ipairs(stats) do print(string.format('%s %-10s %-10s', value.timestamp ,value.distance, value.type)) end
     --bitser.dumpLoveFile(filename, stats)
-    txt=json.encode(stats)
+    --JSON = assert(loadfile "JSON.lua")()
+    txt = JSON:encode_pretty(stats)
     love.filesystem.write(filename, txt, string.len(txt))
 end
+
 function update_circle(dt)
     SPEED = 30 
     if love.keyboard.isDown('lshift') then
