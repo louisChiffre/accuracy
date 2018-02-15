@@ -26,7 +26,9 @@ function M.set()
 end
 
 function M.evaluate()
-    return evaluate_square(get_scaled_square(), reference_square)
+    result = evaluate_square(get_scaled_square(), reference_square)
+    result.type = string.format('proportion_%s', fixed_side)
+    return result
 end
 
 function M.update(dt)
