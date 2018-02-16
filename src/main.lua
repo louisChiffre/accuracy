@@ -181,9 +181,15 @@ function love.update(dt)
     end
 end
 
+function translate_player()
+    pos = STATE2POS[player_state]
+    love.graphics.translate(pos.x, pos.y)
+end
 
 function love.draw()
-    TRAINING_TYPE.draw()
+    TRAINING_TYPE.draw_reference()
+    translate_player()
+    TRAINING_TYPE.draw_player()
 end
 
 
@@ -198,3 +204,6 @@ function get_timestamp()
     return os.date("%Y-%m-%d %H:%M:%S")
 end
 
+function get_player_color()
+    return state2color[player_state]
+end

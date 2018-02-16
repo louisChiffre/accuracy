@@ -62,19 +62,17 @@ function get_scaled_square()
     return setmetatable(sqr, metasquare)
 end
 
-function M.draw()
+function M.draw_reference()
     love.graphics.setColor(REFERENCE_COLOR)
     love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y, reference_square.width, reference_square.height)
-    
-    state2square = {PLAY=player_square, EVALUATE=get_scaled_square()}
-    actual_square = state2square[player_state]
-    pos = STATE2POS[player_state]
-    love.graphics.translate(pos.x, pos.y)
-
-    love.graphics.setColor(state2color[player_state])
-    love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y , actual_square.width, actual_square.height)
 end
 
+function M.draw_player()
+    state2square = {PLAY=player_square, EVALUATE=get_scaled_square()}
+    actual_square = state2square[player_state]
+    love.graphics.setColor(get_player_color())
+    love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y , actual_square.width, actual_square.height)
+end
 
 return M
 

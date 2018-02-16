@@ -33,17 +33,15 @@ function M.evaluate()
     return evaluate_square(player_square, reference_square)
 end
 
-function M.draw()
+function M.draw_reference()
     love.graphics.setColor(REFERENCE_COLOR)
     love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y, reference_square.width, reference_square.height)
-
-    pos = STATE2POS[player_state]
-    love.graphics.translate(pos.x, pos.y)
-
-    love.graphics.setColor(state2color[player_state])
-    love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y , player_square.width, player_square.height)
 end
 
+function M.draw_player()
+    love.graphics.setColor(get_player_color())
+    love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y , player_square.width, player_square.height)
+end
 
 return M
 

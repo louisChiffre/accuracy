@@ -27,17 +27,16 @@ function M.update(dt)
     end
 end
 
-function M.draw()
-    CIRCLE_CENTER = {x=LENGTH*0.5, y=LENGTH*0.5}
+local CIRCLE_CENTER = {x=LENGTH*0.5, y=LENGTH*0.5}
 
+function M.draw_reference()
     love.graphics.setColor(REFERENCE_COLOR)
     love.graphics.circle("line", CIRCLE_CENTER.x, CIRCLE_CENTER.y, reference_circle.radius)
+end
 
-    pos = STATE2POS[player_state]
-    love.graphics.translate(pos.x, pos.y)
-    love.graphics.setColor(state2color[player_state])
+function M.draw_player()
+    love.graphics.setColor(get_player_color())
     love.graphics.circle("line", CIRCLE_CENTER.x, CIRCLE_CENTER.y, player_circle.radius)
-
 end
 
 function M.evaluate()
