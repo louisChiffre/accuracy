@@ -181,14 +181,14 @@ function love.update(dt)
     end
 end
 
-function translate_player()
+function translate_viewport()
     pos = STATE2POS[player_state]
     love.graphics.translate(pos.x, pos.y)
 end
 
 function love.draw()
     TRAINING_TYPE.draw_reference()
-    translate_player()
+    translate_viewport()
     TRAINING_TYPE.draw_player()
 end
 
