@@ -5,12 +5,12 @@ function makeCircle()
 end
 
 function makeRandomCircle()
-    return {radius= love.math.random(50, 0.4*SIZE)}
+    return {radius= love.math.random(50, 0.4*LENGTH)}
 end
 
 function M.set()
     love.window.setTitle('Circle')
-    reference_circle = makeRandomCircle(SIZE)
+    reference_circle = makeRandomCircle(LENGTH)
     player_circle = makeCircle()
 end
 
@@ -28,14 +28,16 @@ function M.update(dt)
 end
 
 function M.draw()
-    state2pos =   {PLAY={x=SIZE*1.5, y=SIZE*1.5}, EVALUATE={x=SIZE*0.5, y=SIZE*0.5}}
+    CIRCLE_CENTER = {x=LENGTH*0.5, y=LENGTH*0.5}
+
     love.graphics.setColor(REFERENCE_COLOR)
-    pos_ref = state2pos[EVALUATE]
-    love.graphics.circle("line", pos_ref.x, pos_ref.y, reference_circle.radius)
-    color = state2color[player_state]
-    pos = state2pos[player_state]
-    love.graphics.setColor(color) -- reset colours
-    love.graphics.circle("line", pos.x, pos.y , player_circle.radius)
+    love.graphics.circle("line", CIRCLE_CENTER.x, CIRCLE_CENTER.y, reference_circle.radius)
+
+    pos = STATE2POS[player_state]
+    love.graphics.translate(pos.x, pos.y)
+    love.graphics.setColor(state2color[player_state])
+    love.graphics.circle("line", CIRCLE_CENTER.x, CIRCLE_CENTER.y, player_circle.radius)
+
 end
 
 function M.evaluate()

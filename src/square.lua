@@ -1,6 +1,6 @@
 local M = {}
 function makeRandomSquare()
-    return make_random_square(50, SIZE, 50, SIZE)
+    return make_random_square(50, LENGTH, 50, LENGTH)
 end
 
 function makeSquare()
@@ -34,11 +34,12 @@ function M.evaluate()
 end
 
 function M.draw()
-    state2pos =   {PLAY={x=SIZE, y=SIZE}, EVALUATE=REFERENCE_POSITION}
     love.graphics.setColor(REFERENCE_COLOR)
     love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y, reference_square.width, reference_square.height)
-    pos = state2pos[player_state]
+
+    pos = STATE2POS[player_state]
     love.graphics.translate(pos.x, pos.y)
+
     love.graphics.setColor(state2color[player_state])
     love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y , player_square.width, player_square.height)
 end

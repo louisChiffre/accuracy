@@ -2,7 +2,7 @@ M = {}
 
 function M.set()
     love.window.setTitle('Proportion')
-    reference_square = make_random_square(50, SIZE*0.8, 50, SIZE*0.8)
+    reference_square = make_random_square(50, LENGTH*0.8, 50, LENGTH*0.8)
     sides = {'width', 'height'}
     fixed_side = sides[love.math.random(1,2)]
     print(fixed_side)
@@ -12,13 +12,13 @@ function M.set()
             reference_square = {height = reference_square.width, width=reference_square.height}
         end
         assert(reference_square.width > reference_square.height)
-        player_square = {height=10, width=SIZE}
+        player_square = {height=10, width=LENGTH}
     elseif fixed_side == 'height' then 
         if reference_square.height < reference_square.width then
             reference_square = {height = reference_square.width, width=reference_square.height}
         end
         assert(reference_square.height > reference_square.width)
-        player_square = {height=SIZE, width=10}
+        player_square = {height=LENGTH, width=10}
     else
         assert('Something is wrong')
     end
@@ -63,14 +63,14 @@ function get_scaled_square()
 end
 
 function M.draw()
-    state2pos =   {PLAY={x=SIZE, y=SIZE}, EVALUATE=REFERENCE_POSITION}
     love.graphics.setColor(REFERENCE_COLOR)
     love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y, reference_square.width, reference_square.height)
     
     state2square = {PLAY=player_square, EVALUATE=get_scaled_square()}
     actual_square = state2square[player_state]
-    pos = state2pos[player_state]
+    pos = STATE2POS[player_state]
     love.graphics.translate(pos.x, pos.y)
+
     love.graphics.setColor(state2color[player_state])
     love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y , actual_square.width, actual_square.height)
 end

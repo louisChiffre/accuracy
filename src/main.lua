@@ -38,6 +38,7 @@ function save(result)
     --bitser.dumpLoveFile(filename, stats)
     --JSON = assert(loadfile "JSON.lua")()
     txt = JSON:encode_pretty(stats)
+    -- print(JSON:encode_pretty(result))
     love.filesystem.write(filename, txt, string.len(txt))
 end
 
@@ -54,12 +55,17 @@ function love.load()
     --normalize()
     BORDER = 10
     WIDTH, HEIGHT = love.graphics.getDimensions( )
-    SIZE = math.floor((math.min(WIDTH, HEIGHT)-BORDER)/2)
+    LENGTH = math.floor((math.min(WIDTH, HEIGHT)-BORDER)/2)
     RED = {255, 0,0}
     WHITE = {255, 255,255 }
     PLAY='PLAY'
     EVALUATE='EVALUATE'
+
     REFERENCE_POSITION ={x=1,y=1}
+    PLAYER_POSITION = {x=LENGTH, y=LENGTH} 
+    STATE2POS = {PLAY=PLAYER_POSITION, EVALUATE=REFERENCE_POSITION}
+
+
     REFERENCE_COLOR = WHITE
     state2color = {PLAY=WHITE, EVALUATE=RED}
     state2next =  {PLAY=EVALUATE, EVALUATE=PLAY}
