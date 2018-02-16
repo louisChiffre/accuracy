@@ -74,9 +74,10 @@ function love.load()
     local circle = require('circle')
     local square = require('square')
     local proportion = require('proportion')
+    local line = require('line')
 
     
-    TRAINING_TYPES = {square, circle, proportion}
+    TRAINING_TYPES = {square, circle, proportion, line}
 
     player_state = 'PLAY'
     TRAINING_TYPE = square
