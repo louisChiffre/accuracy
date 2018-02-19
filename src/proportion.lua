@@ -2,7 +2,7 @@ M = {}
 
 function M.set()
     love.window.setTitle('Proportion')
-    reference_square = make_random_square(50, LENGTH*0.8, 50, LENGTH*0.8)
+    reference_square = make_random_square(50, LENGTH*0.5, 50, LENGTH*0.5)
     sides = {'width', 'height'}
     fixed_side = sides[love.math.random(1,2)]
     print(fixed_side)

@@ -9,12 +9,22 @@ function M.set()
         length = love.math.random(50, LENGTH*0.5)
     } 
     player_line = {
-        angle = 0.0,
+        angle = normalize_angle(reference_line.angle + love.math.random(-30, 30)/360.0 * 2 * math.pi),
         length = LENGTH * 0.4
     }
 end
 
 local CENTER = {x=LENGTH*0.5, y=LENGTH*0.5}
+
+function normalize_angle(angle)
+    if angle < 0 then
+        angle = 2*math.pi + angle
+    end
+    if angle > 2*math.pi then
+        angle = angle - 2*math.pi
+    end
+    return angle
+end
 
 function M.update(dt)
     SPEED = 30 
@@ -31,17 +41,12 @@ function M.update(dt)
     elseif love.keyboard.isDown("down") then
         player_line.angle = player_line.angle + dt*SPEED * ANGLE_FACTOR
     end
-    if player_line.angle < 0 then
-        player_line.angle = 2*math.pi + player_line.angle
-    end
-    if player_line.angle > 2*math.pi then
-        player_line.angle = player_line.angle - 2*math.pi
-    end
+    player_line.angle = normalize_angle(player_line.angle)
 end
 
 function draw_line(line)
     x = CENTER.x + math.cos(line.angle)*line.length
-    y =CENTER.y + math.sin(line.angle)*line.length
+    y = CENTER.y + math.sin(line.angle)*line.length
 
     love.graphics.line(CENTER.x, CENTER.y, x, y)
     love.graphics.circle("line", x, y, 2)
@@ -59,7 +64,7 @@ end
 
 function M.evaluate()
     dlength = math.abs(player_line.length-reference_line.length)/reference_line.length
-    dangle = math.abs(player_line.angle-reference_line.angle)/reference_line.angle
+    dangle = math.abs(player_line.angle-reference_line.angle)/(0.5*math.pi)
     stats= {
         timestamp=get_timestamp(), 
         type="line",

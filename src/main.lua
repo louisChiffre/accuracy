@@ -20,6 +20,7 @@ function get_system_id()
 end
 
 function save(result)
+    print(string.format("error %s %%", math.floor(stats.normalized_error*100))) 
     if result == nil then
         print("nothing to save")
         return
@@ -27,6 +28,7 @@ function save(result)
     local JSON = require "JSON"
     result.system_id = get_system_id()
     stats = get_stats()
+    STATS.counter = STATS.counter+1
     filename = FILENAME
     stats[#stats+1] = result
     --for key,value in ipairs(stats) do
@@ -38,7 +40,7 @@ function save(result)
     --bitser.dumpLoveFile(filename, stats)
     --JSON = assert(loadfile "JSON.lua")()
     txt = JSON:encode_pretty(stats)
-    -- print(JSON:encode_pretty(result))
+    --print(JSON:encode_pretty(result))
     love.filesystem.write(filename, txt, string.len(txt))
 end
 
@@ -60,10 +62,14 @@ function love.load()
     WHITE = {255, 255,255 }
     PLAY='PLAY'
     EVALUATE='EVALUATE'
+    IS_RANDOM=false
 
     REFERENCE_POSITION ={x=1,y=1}
     PLAYER_POSITION = {x=LENGTH, y=LENGTH} 
+    STATS_POSITION = {x=REFERENCE_POSITION.x, y=LENGTH}
     STATE2POS = {PLAY=PLAYER_POSITION, EVALUATE=REFERENCE_POSITION}
+
+    STATS = {counter=0}
 
 
     REFERENCE_COLOR = WHITE
@@ -145,9 +151,20 @@ function evaluate_square(player_square, reference_square)
 
 end
 
+function get_randome_training_type()
+    return TRAINING_TYPES[love.math.random(1, #TRAINING_TYPES)]
+end
+
 function love.keypressed( key, scancode, isrepeat )
     if scancode == "s" then
         show()
+    end
+
+    if scancode == "r" then
+        IS_RANDOM = true
+        print('Random mode enabled')
+        TRAINING_TYPE = get_randome_training_type()
+        state_init()
     end
 
     if scancode == "space" then
@@ -156,8 +173,8 @@ function love.keypressed( key, scancode, isrepeat )
             save(result)
             player_state = EVALUATE
         elseif player_state == EVALUATE then
-            TRAINING_TYPE.set()
-            player_state = PLAY
+            TRAINING_TYPE = get_randome_training_type()
+            state_init()
         end
     end
     num = tonumber(scancode)
@@ -166,6 +183,7 @@ function love.keypressed( key, scancode, isrepeat )
     end
     if TRAINING_TYPES[num]~= nil then
         TRAINING_TYPE = TRAINING_TYPES[num]
+        IS_RANDOM = true
         state_init()
     end
 end
@@ -182,15 +200,28 @@ function love.update(dt)
     end
 end
 
-function translate_viewport()
+function set_player_viewport()
     pos = STATE2POS[player_state]
     love.graphics.translate(pos.x, pos.y)
 end
 
 function love.draw()
     TRAINING_TYPE.draw_reference()
-    translate_viewport()
+
+    love.graphics.push()
+    set_player_viewport()
     TRAINING_TYPE.draw_player()
+    love.graphics.setColor(REFERENCE_COLOR)
+    love.graphics.pop()
+
+
+    love.graphics.translate(STATS_POSITION.x, STATS_POSITION.y)
+    draw_stats()
+end
+
+function draw_stats()
+    love.graphics.print(string.format('#%s', STATS.counter), 1, 1)
+
 end
 
 

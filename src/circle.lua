@@ -56,7 +56,6 @@ function M.evaluate()
     else
         print(string.format("Radius too narrow by %s pixels", stats.diff))  
     end
-    print(string.format("error %s %%", math.floor(stats.normalized_error*100))) 
     return stats
 end
 
