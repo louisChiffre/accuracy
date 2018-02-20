@@ -28,7 +28,6 @@ function save(result)
     local JSON = require "JSON"
     result.system_id = get_system_id()
     stats = get_stats()
-    STATS.counter = STATS.counter+1
     filename = FILENAME
     stats[#stats+1] = result
     --for key,value in ipairs(stats) do
@@ -70,6 +69,8 @@ function love.load()
     STATE2POS = {PLAY=PLAYER_POSITION, EVALUATE=REFERENCE_POSITION}
 
     STATS = {counter=0}
+    STATS.list = {}
+    TEXT_HEIGHT = 15
 
 
     REFERENCE_COLOR = WHITE
@@ -155,6 +156,13 @@ function get_randome_training_type()
     return TRAINING_TYPES[love.math.random(1, #TRAINING_TYPES)]
 end
 
+function update_running_stats(result)
+    STATS.counter = STATS.counter+1
+    table.insert(STATS.list, 1, result)
+    STATS.last = result
+end
+
+
 function love.keypressed( key, scancode, isrepeat )
     if scancode == "s" then
         show()
@@ -170,6 +178,7 @@ function love.keypressed( key, scancode, isrepeat )
     if scancode == "space" then
         if player_state == PLAY then
             result=TRAINING_TYPE.evaluate()
+            update_running_stats(result)
             save(result)
             player_state = EVALUATE
         elseif player_state == EVALUATE then
@@ -205,6 +214,12 @@ function set_player_viewport()
     love.graphics.translate(pos.x, pos.y)
 end
 
+
+
+function love.quit()
+    print('done')
+end
+
 function love.draw()
     TRAINING_TYPE.draw_reference()
 
@@ -214,14 +229,17 @@ function love.draw()
     love.graphics.setColor(REFERENCE_COLOR)
     love.graphics.pop()
 
-
     love.graphics.translate(STATS_POSITION.x, STATS_POSITION.y)
     draw_stats()
 end
 
 function draw_stats()
-    love.graphics.print(string.format('#%s', STATS.counter), 1, 1)
-
+    MAX_STATS = 5 
+    for i, k in ipairs(STATS.list) do
+        if i <= MAX_STATS then
+            love.graphics.print(string.format('%-5s %20s %10.2f%%', i , k.type, 100*k.normalized_error), 1, i * TEXT_HEIGHT)
+        end
+    end
 end
 
 
