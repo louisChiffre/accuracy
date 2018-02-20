@@ -235,9 +235,20 @@ end
 
 function draw_stats()
     MAX_STATS = 5 
-    for i, k in ipairs(STATS.list) do
+    COLUMN_SIZE = 150 
+    results = STATS.list
+    n = #results
+    
+    row = 1
+    love.graphics.print('TYPE', 1, row * TEXT_HEIGHT)
+    love.graphics.print('ERROR', COLUMN_SIZE, row * TEXT_HEIGHT)
+    row = row + 1
+    for i, k in ipairs(results) do
         if i <= MAX_STATS then
-            love.graphics.print(string.format('%-5s %20s %10.2f%%', i , k.type, 100*k.normalized_error), 1, i * TEXT_HEIGHT)
+            num = n + 1 - i
+            love.graphics.print(string.format('%s %-20s', num , k.type), 1, row * TEXT_HEIGHT)
+            love.graphics.print(string.format('%-10.1f', 100*k.normalized_error), COLUMN_SIZE, row * TEXT_HEIGHT)
+            row = row + 1
         end
     end
 end
