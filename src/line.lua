@@ -49,7 +49,7 @@ function draw_line(line)
     y = CENTER.y + math.sin(line.angle)*line.length
 
     love.graphics.line(CENTER.x, CENTER.y, x, y)
-    love.graphics.circle("line", x, y, 2)
+    -- love.graphics.circle("line", x, y, 2)
 end
 
 function M.draw_reference()

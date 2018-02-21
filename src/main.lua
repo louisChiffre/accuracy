@@ -68,8 +68,11 @@ function love.load()
     STATS_POSITION = {x=REFERENCE_POSITION.x, y=LENGTH}
     STATE2POS = {PLAY=PLAYER_POSITION, EVALUATE=REFERENCE_POSITION}
 
+    -- initialize stats
     STATS = {counter=0}
     STATS.list = {}
+    STATS.normalized_errors = {}
+
     TEXT_HEIGHT = 15
 
 
@@ -78,16 +81,15 @@ function love.load()
     state2next =  {PLAY=EVALUATE, EVALUATE=PLAY}
 
 
-    local circle = require('circle')
-    local square = require('square')
-    local proportion = require('proportion')
-    local line = require('line')
-
-    
-    TRAINING_TYPES = {square, circle, proportion, line}
+    TRAINING_TYPES = {}
+    training_types =   {'square', 'circle', 'proportion', 'line'}
+    for i ,training_type in ipairs(training_types) do
+        TRAINING_TYPES[i] = require(training_type)
+        print(training_type)
+    end
 
     player_state = 'PLAY'
-    TRAINING_TYPE = square
+    TRAINING_TYPE = TRAINING_TYPES[1]
     state_init()
 end
 
@@ -157,8 +159,13 @@ function get_randome_training_type()
 end
 
 function update_running_stats(result)
+    stats_lib = require 'stats'
     STATS.counter = STATS.counter+1
     table.insert(STATS.list, 1, result)
+    table.insert(STATS.normalized_errors, result.normalized_error)
+    STATS.stats = { 
+        median=stats.median(STATS.normalized_errors)
+    } 
     STATS.last = result
 end
 
@@ -251,8 +258,10 @@ function draw_stats()
             row = row + 1
         end
     end
+    if STATS.stats ~=nil then
+        love.graphics.print(string.format('%s', STATS.stats.median), 1, row * TEXT_HEIGHT)
+    end
 end
-
 
 function show()
     stats = get_stats()
