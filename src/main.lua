@@ -30,14 +30,7 @@ function save(result)
     stats = get_stats()
     filename = FILENAME
     stats[#stats+1] = result
-    --for key,value in ipairs(stats) do
-    --    value.system_id = result.system_id 
-    --end
     print(string.format("%s values saved", #stats))
-    --print(string.format('%s %-10s %-10s', result.timestamp, result.distance, result.type))
-    -- for key,value in ipairs(stats) do print(string.format('%s %-10s %-10s', value.timestamp ,value.distance, value.type)) end
-    --bitser.dumpLoveFile(filename, stats)
-    --JSON = assert(loadfile "JSON.lua")()
     txt = JSON:encode_pretty(stats)
     --print(JSON:encode_pretty(result))
     love.filesystem.write(filename, txt, string.len(txt))
@@ -81,21 +74,19 @@ function love.load()
     TRAINING_TYPES_NAMES =   {'square', 'circle', 'proportion', 'line'}
     for i ,training_type in ipairs(TRAINING_TYPES_NAMES) do
         TRAINING_TYPES[i] = require(training_type)
-        print(training_type)
+        TRAINING_TYPES[i].name = training_type -- to be able to add type to result
     end
 
     player_state = 'PLAY'
     TRAINING_TYPE = TRAINING_TYPES[1]
-    state_init()
+    initialize_state()
 
-    -- initialize stats
-    STATS = {counter=0}
-    STATS.list = {}
-    STATS.normalized_errors = {}
+    initialize_running_stats()
+
 
 end
 
-function state_init()
+function initialize_state()
     player_state = 'PLAY'
     TRAINING_TYPE.set()
 end
@@ -123,7 +114,6 @@ function evaluate_square(player_square, reference_square)
     diff = player_square - reference_square
     stats= {
         timestamp=get_timestamp(),
-        type="rectangle",
         reference=reference_square,
         actual=player_square,
         diff=diff,
@@ -160,14 +150,42 @@ function get_randome_training_type()
     return TRAINING_TYPES[love.math.random(1, #TRAINING_TYPES)]
 end
 
-function update_running_stats(result)
+function compute_running_stats(values, value)
     local stats = require('stats')
+    if values == nil then
+        values = {}
+    end
+    table.insert(values, value)
+    return {
+        median=stats.median(values),
+        mean=stats.mean(values)
+    } 
+
+end
+
+function initialize_running_stats()
+    -- initialize stats
+    STATS = {counter=0}
+    STATS.list = {}
+    STATS.normalized_errors = {}
+    STATS.normalized_errors_stats = {}
+    STATS.types = {}
+    for i ,training_type in ipairs(TRAINING_TYPES_NAMES) do
+        STATS.normalized_errors[training_type] = {}
+        STATS.normalized_errors_stats[training_type] = {}
+    end
+    STATS.normalized_errors['all'] = {}
+    STATS.normalized_errors_stats['all'] = {}
+end
+
+
+function update_running_stats(result)
     STATS.counter = STATS.counter+1
     table.insert(STATS.list, 1, result)
-    table.insert(STATS.normalized_errors, result.normalized_error)
-    STATS.stats = { 
-        median=stats.median(STATS.normalized_errors)
-    } 
+    STATS.normalized_errors_stats[result.type] =  
+        compute_running_stats(STATS.normalized_errors[result.type], result.normalized_error)
+    STATS.normalized_errors_stats['all'] =  
+        compute_running_stats(STATS.normalized_errors['all'], result.normalized_error)
     STATS.last = result
 end
 
@@ -181,18 +199,19 @@ function love.keypressed( key, scancode, isrepeat )
         IS_RANDOM = true
         print('Random mode enabled')
         TRAINING_TYPE = get_randome_training_type()
-        state_init()
+        initialize_state()
     end
 
     if scancode == "space" then
         if player_state == PLAY then
-            result=TRAINING_TYPE.evaluate()
+            result = TRAINING_TYPE.evaluate()
+            result.type = TRAINING_TYPE.name
             update_running_stats(result)
             save(result)
             player_state = EVALUATE
         elseif player_state == EVALUATE then
             TRAINING_TYPE = get_randome_training_type()
-            state_init()
+            initialize_state()
         end
     end
     num = tonumber(scancode)
@@ -202,7 +221,7 @@ function love.keypressed( key, scancode, isrepeat )
     if TRAINING_TYPES[num]~= nil then
         TRAINING_TYPE = TRAINING_TYPES[num]
         IS_RANDOM = true
-        state_init()
+        initialize_state()
     end
 end
 
@@ -223,13 +242,12 @@ function set_player_viewport()
     love.graphics.translate(pos.x, pos.y)
 end
 
-
-
 function love.quit()
     print('done')
 end
 
 function love.draw()
+    love.graphics.print('FPS:'..tostring(love.timer.getFPS( )), WIDTH -60 , 10)
     TRAINING_TYPE.draw_reference()
 
     love.graphics.push()
@@ -249,6 +267,8 @@ function draw_stats()
     n = #results
     
     row = 1
+    love.graphics.print('LOGS', 1, row * TEXT_HEIGHT)
+    row = row +1
     love.graphics.print('TYPE', 1, row * TEXT_HEIGHT)
     love.graphics.print('ERROR', COLUMN_SIZE, row * TEXT_HEIGHT)
     row = row + 1
@@ -256,13 +276,22 @@ function draw_stats()
         if i <= MAX_STATS then
             num = n + 1 - i
             love.graphics.print(string.format('%s %-20s', num , k.type), 1, row * TEXT_HEIGHT)
-            love.graphics.print(string.format('%-10.1f', 100*k.normalized_error), COLUMN_SIZE, row * TEXT_HEIGHT)
+            love.graphics.print(string.format('%.1f', 100*k.normalized_error), COLUMN_SIZE, row * TEXT_HEIGHT)
             row = row + 1
         end
     end
-    row = row + 1
-    if STATS.stats ~=nil then
-        love.graphics.print(string.format('SESSION MEDIAN %.1f', 100*STATS.stats.median), 1, row * TEXT_HEIGHT)
+    row = row + 2 
+    love.graphics.print('STATS', 1, row * TEXT_HEIGHT)
+    love.graphics.print('MEDIAN', COLUMN_SIZE, row * TEXT_HEIGHT)
+    row = row +1
+    for _, training_type in ipairs(TRAINING_TYPES_NAMES) do
+        s = STATS.normalized_errors_stats[training_type]
+        love.graphics.print(training_type, 1, row * TEXT_HEIGHT)
+        if s.median ~=nil then
+            love.graphics.print(string.format('%.1f', 100*s.median), COLUMN_SIZE, row * TEXT_HEIGHT)
+        end
+        row = row + 1
+
     end
 end
 

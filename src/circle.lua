@@ -44,7 +44,6 @@ function M.evaluate()
     area = function(circle) return math.pi * (circle.radius^2) end
     stats= {
         timestamp=get_timestamp(), 
-        type="circle",
         reference=reference_circle,
         actual=player_circle,
         diff=diff,

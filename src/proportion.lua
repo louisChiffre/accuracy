@@ -27,7 +27,6 @@ end
 
 function M.evaluate()
     result = evaluate_square(get_scaled_square(), reference_square)
-    result.type = string.format('proportion_%s', fixed_side)
     return result
 end
 
