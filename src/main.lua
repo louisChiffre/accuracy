@@ -48,7 +48,9 @@ function love.load()
     FILENAME = "stats.json"
     --normalize()
     BORDER = 10
-    WIDTH, HEIGHT = love.graphics.getDimensions( )
+    WIDTH = 640
+    HEIGHT = 640
+    -- delimiting
     LENGTH = math.floor((math.min(WIDTH, HEIGHT)-BORDER)/2)
     RED = {255, 0,0}
     WHITE = {255, 255,255 }
@@ -59,7 +61,7 @@ function love.load()
     REFERENCE_POSITION ={x=1,y=1}
     PLAYER_POSITION = {x=LENGTH, y=LENGTH} 
     STATS_POSITION = {x=REFERENCE_POSITION.x, y=LENGTH}
-    STATE2POS = {PLAY=PLAYER_POSITION, EVALUATE=REFERENCE_POSITION}
+
 
 
     TEXT_HEIGHT = 15
@@ -237,27 +239,53 @@ function love.update(dt)
     end
 end
 
-function set_player_viewport()
-    pos = STATE2POS[player_state]
-    love.graphics.translate(pos.x, pos.y)
-end
 
 function love.quit()
     print('done')
 end
 
-function love.draw()
-    love.graphics.print('FPS:'..tostring(love.timer.getFPS( )), WIDTH -60 , 10)
-    TRAINING_TYPE.draw_reference()
+function set_player_viewport()
+    if player_state == PLAY then 
+        love.graphics.translate(PLAYER_POSITION.x, PLAYER_POSITION.y)
+    else
+        set_reference_viewport()
+    end
+end
 
-    love.graphics.push()
+function set_reference_viewport()
+    love.graphics.translate(REFERENCE_POSITION.x, REFERENCE_POSITION.y)
+end
+
+function set_stats_viewport()
+    love.graphics.translate(STATS_POSITION.x, STATS_POSITION.y)
+end
+
+function set_fps_viewport()
+    w, h = love.graphics.getDimensions()
+    love.graphics.translate(w - 60, 20)
+end
+
+
+
+function love.draw()
+    set_fps_viewport()
+    love.graphics.print('FPS:'..tostring(love.timer.getFPS( )), 1, 1)
+    love.graphics.origin()
+
+
+    set_reference_viewport()
+    TRAINING_TYPE.draw_reference()
+    love.graphics.origin()
+
     set_player_viewport()
     TRAINING_TYPE.draw_player()
-    love.graphics.setColor(REFERENCE_COLOR)
-    love.graphics.pop()
+    love.graphics.origin()
 
-    love.graphics.translate(STATS_POSITION.x, STATS_POSITION.y)
+    love.graphics.setColor(REFERENCE_COLOR)
+    set_stats_viewport()
     draw_stats()
+    love.graphics.origin()
+
 end
 
 function draw_stats()
