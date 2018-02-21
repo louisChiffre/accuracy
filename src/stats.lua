@@ -1,6 +1,6 @@
 -- from http://lua-users.org/wiki/SimpleStats
 
-stats={}
+local stats={}
 
 -- Get the mean value of a table
 function stats.mean( t )
@@ -111,3 +111,5 @@ function stats.maxmin( t )
 
   return max, min
 end
+
+return stats
