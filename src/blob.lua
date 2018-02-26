@@ -24,9 +24,10 @@ function M.set()
     for i, k in ipairs(reference) do table.insert(player, k) end
     table.insert(player, reference[#reference-1])
     table.insert(player, reference[#reference-1])
+    ACTIVE_POINT = #player
 
     -- we generate random points along the axe
-    N_POINTS = 2 
+    N_POINTS = 3 
     y_ = {} 
     for i = 1,N_POINTS do
         table.insert(y_, love.math.random(25, 75)/100.0*H)
@@ -39,12 +40,12 @@ function M.set()
 end
 
 function get()
-    return player[#player-1], player[#player]
+    return player[ACTIVE_POINT-1], player[ACTIVE_POINT]
 end
 
 function set(x, y)
-    player[#player-1] = x
-    player[#player] = y
+    player[ACTIVE_POINT-1] = x
+    player[ACTIVE_POINT] = y
 end
 
 function M.update(dt)
@@ -77,11 +78,20 @@ function M.keypressed(key, scancode, isrepeat)
             P = player
             dx = P[#P-1] - P[#P-3]
             dy = P[#P]   - P[#P-2] 
-            scale = 0.5
+            scale = 0.10
             new_x = P[#P-1] + scale*dx
             new_y = P[#P]   + scale*dy
             table.insert(player, new_x)
             table.insert(player, new_y) 
+            ACTIVE_POINT = #player
+        end
+    end
+    if scancode == 'tab' then
+        if #player==#reference then
+            ACTIVE_POINT = ACTIVE_POINT + 2
+            if ACTIVE_POINT > #reference then
+                ACTIVE_POINT = BASE_N + 2
+            end
         end
     end
 
@@ -110,7 +120,9 @@ function M.draw_player()
     love.graphics.setColor(get_player_color())
     if player_state == PLAY then
         if #player==#reference then
+            x, y = get()
             love.graphics.polygon('line', player)
+            -- love.graphics.circle('fill', x, y, 5)
         else
             love.graphics.line(player)
         end
