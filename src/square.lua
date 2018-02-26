@@ -35,12 +35,12 @@ end
 
 function M.draw_reference()
     love.graphics.setColor(REFERENCE_COLOR)
-    love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y, reference_square.width, reference_square.height)
+    love.graphics.rectangle("line", 0, 0,  reference_square.width, reference_square.height)
 end
 
 function M.draw_player()
     love.graphics.setColor(get_player_color())
-    love.graphics.rectangle("line", REFERENCE_POSITION.x, REFERENCE_POSITION.y , player_square.width, player_square.height)
+    love.graphics.rectangle("line", 0, 0 , player_square.width, player_square.height)
 end
 
 return M

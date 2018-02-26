@@ -46,23 +46,24 @@ end
 
 function love.load()
     FILENAME = "stats.json"
-    --normalize()
     BORDER = 10
     WIDTH = 640
     HEIGHT = 640
-    -- delimiting
+
     LENGTH = math.floor((math.min(WIDTH, HEIGHT)-BORDER)/2)
     RED = {255, 0,0}
     WHITE = {255, 255,255 }
     PLAY='PLAY'
     EVALUATE='EVALUATE'
     IS_RANDOM=false
+    HAS_DEBUG_BOX = false
+    --font = love.graphics.newFont('VeraMono.ttf')
+    --love.graphics.setFont(font)
 
-    REFERENCE_POSITION ={x=1,y=1}
-    PLAYER_POSITION = {x=LENGTH, y=LENGTH} 
-    STATS_POSITION = {x=REFERENCE_POSITION.x, y=LENGTH}
 
-
+    REFERENCE_ORIGIN ={x=1,y=1}
+    PLAYER_ORIGIN = {x=LENGTH, y=LENGTH} 
+    STATS_ORIGIN = {x=REFERENCE_ORIGIN.x, y=LENGTH}
 
     TEXT_HEIGHT = 15
 
@@ -73,7 +74,7 @@ function love.load()
 
 
     TRAINING_TYPES = {}
-    TRAINING_TYPES_NAMES =   {'square', 'circle', 'proportion', 'line'}
+    TRAINING_TYPES_NAMES =   {'blob', 'line', 'square', 'circle', 'proportion'}
     for i ,training_type in ipairs(TRAINING_TYPES_NAMES) do
         TRAINING_TYPES[i] = require(training_type)
         TRAINING_TYPES[i].name = training_type -- to be able to add type to result
@@ -90,6 +91,7 @@ end
 
 function initialize_state()
     player_state = 'PLAY'
+    shuffle_player_position()
     TRAINING_TYPE.set()
 end
 
@@ -204,6 +206,12 @@ function love.keypressed( key, scancode, isrepeat )
         initialize_state()
     end
 
+    -- if keypressed is available call it
+    if TRAINING_TYPE.keypressed ~=nil then
+        TRAINING_TYPE.keypressed(key, scancode, isrepeat)
+    end
+
+
     if scancode == "space" then
         if player_state == PLAY then
             result = TRAINING_TYPE.evaluate()
@@ -216,14 +224,15 @@ function love.keypressed( key, scancode, isrepeat )
             initialize_state()
         end
     end
+
     num = tonumber(scancode)
-    if num==nil then
+    if num~=nil then
+        if TRAINING_TYPES[num]~= nil then
+            TRAINING_TYPE = TRAINING_TYPES[num]
+            IS_RANDOM = true
+            initialize_state()
+        end
         return
-    end
-    if TRAINING_TYPES[num]~= nil then
-        TRAINING_TYPE = TRAINING_TYPES[num]
-        IS_RANDOM = true
-        initialize_state()
     end
 end
 
@@ -246,39 +255,54 @@ end
 
 function set_player_viewport()
     if player_state == PLAY then 
-        love.graphics.translate(PLAYER_POSITION.x, PLAYER_POSITION.y)
+        love.graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y)
     else
         set_reference_viewport()
     end
 end
 
 function set_reference_viewport()
-    love.graphics.translate(REFERENCE_POSITION.x, REFERENCE_POSITION.y)
+    love.graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y)
 end
 
 function set_stats_viewport()
-    love.graphics.translate(STATS_POSITION.x, STATS_POSITION.y)
+    love.graphics.translate(STATS_ORIGIN.x, STATS_ORIGIN.y)
 end
+
 
 function set_fps_viewport()
     w, h = love.graphics.getDimensions()
     love.graphics.translate(w - 60, 20)
 end
 
-
+function shuffle_player_position()
+    w, h = love.graphics.getDimensions()
+    PLAYER_ORIGIN = {
+        x = love.math.random(LENGTH, w - LENGTH),
+        y = love.math.random(LENGTH, h - LENGTH)
+    }
+end
 
 function love.draw()
     set_fps_viewport()
     love.graphics.print('FPS:'..tostring(love.timer.getFPS( )), 1, 1)
     love.graphics.origin()
 
+    function draw_box()
+        if HAS_DEBUG_BOX then
+            love.graphics.rectangle("line", 0, 0, LENGTH, LENGTH)
+        end    
+    end    
+
 
     set_reference_viewport()
     TRAINING_TYPE.draw_reference()
+    draw_box()
     love.graphics.origin()
 
     set_player_viewport()
     TRAINING_TYPE.draw_player()
+    draw_box()
     love.graphics.origin()
 
     love.graphics.setColor(REFERENCE_COLOR)
@@ -287,6 +311,7 @@ function love.draw()
     love.graphics.origin()
 
 end
+
 
 function draw_stats()
     MAX_STATS = 5 
