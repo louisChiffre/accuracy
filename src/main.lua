@@ -61,7 +61,7 @@ function love.load()
     --love.graphics.setFont(font)
 
 
-    REFERENCE_ORIGIN ={x=1,y=1}
+    REFERENCE_ORIGIN ={x=3,y=3}
     PLAYER_ORIGIN = {x=LENGTH, y=LENGTH} 
     STATS_ORIGIN = {x=REFERENCE_ORIGIN.x, y=LENGTH}
 
@@ -74,7 +74,7 @@ function love.load()
 
 
     TRAINING_TYPES = {}
-    TRAINING_TYPES_NAMES =   {'blob', 'line', 'square', 'circle', 'proportion'}
+    TRAINING_TYPES_NAMES =   {'blob', 'square', 'circle', 'proportion'}
     for i ,training_type in ipairs(TRAINING_TYPES_NAMES) do
         TRAINING_TYPES[i] = require(training_type)
         TRAINING_TYPES[i].name = training_type -- to be able to add type to result

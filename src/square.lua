@@ -14,7 +14,7 @@ end
 
 
 function M.update(dt)
-    SPEED = 30 
+    SPEED = 20 
     if love.keyboard.isDown('lshift') then
         SPEED = 200
     end

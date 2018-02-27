@@ -49,9 +49,9 @@ function set(x, y)
 end
 
 function M.update(dt)
-    SPEED = 150 
+    SPEED = 30 
     if love.keyboard.isDown('lshift') then
-        SPEED = 30 
+        SPEED = 100 
     end
     x, y = get()
     if love.keyboard.isDown("right") then
