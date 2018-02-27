@@ -1,4 +1,5 @@
 local M = {}
+mouse ={}
 
 
 function makeCircle()
@@ -66,32 +67,68 @@ function M.update(dt)
     set(x, y)
 end
 
+
+function M.mousemoved( x, y, dx, dy, istouch )
+    if player_state == PLAY then
+        x, y = mouse2world(x, y)
+        set(x, y)
+    end
+end
+
+LEFT_CLICK_BUTTON = 1
+RIGHT_CLICK_BUTTON = 2
+
+function is_complete()
+    return #player==#reference
+end
+
+
+
+function M.mousepressed( x, y, button, istouch )
+    if button==RIGHT_CLICK_BUTTON then
+        remove()
+    elseif button==LEFT_CLICK_BUTTON then
+        add()
+    end
+end
+
+function remove()
+    if #player > BASE_N + 2 then
+        table.remove(player)
+        table.remove(player)
+    end
+end
+
+function add()
+    if #player < BASE_N + 2*N_POINTS then
+        P = player
+        dx = P[#P-1] - P[#P-3]
+        dy = P[#P]   - P[#P-2] 
+        scale = 0.10
+        new_x = P[#P-1] + scale*dx
+        new_y = P[#P]   + scale*dy
+        table.insert(player, new_x)
+        table.insert(player, new_y) 
+        ACTIVE_POINT = #player
+    end
+end
+
 function M.keypressed(key, scancode, isrepeat)
     if scancode == 'rctrl' then
-        if #player > BASE_N + 2 then
-            table.remove(player)
-            table.remove(player)
-        end
+        remove()
     end
     if scancode == 'rshift' then
-        if #player < BASE_N + 2*N_POINTS then
-            P = player
-            dx = P[#P-1] - P[#P-3]
-            dy = P[#P]   - P[#P-2] 
-            scale = 0.10
-            new_x = P[#P-1] + scale*dx
-            new_y = P[#P]   + scale*dy
-            table.insert(player, new_x)
-            table.insert(player, new_y) 
-            ACTIVE_POINT = #player
-        end
+        add()
     end
     if scancode == 'tab' then
-        if #player==#reference then
+        if is_complete() then
             ACTIVE_POINT = ACTIVE_POINT + 2
             if ACTIVE_POINT > #reference then
                 ACTIVE_POINT = BASE_N + 2
             end
+            x, y = get()
+            mx, my = world2mouse(x,y)
+            love.mouse.setPosition(mx, my)
         end
     end
 
@@ -116,10 +153,17 @@ function draw_filled_polygon(polygon)
     end
 end
 
+function mouse2world(x,y )
+    return x - PLAYER_ORIGIN.x, y - PLAYER_ORIGIN.y
+end
+function world2mouse(x,y )
+    return x + PLAYER_ORIGIN.x, y + PLAYER_ORIGIN.y
+end
+
 function M.draw_player()
     love.graphics.setColor(get_player_color())
     if player_state == PLAY then
-        if #player==#reference then
+        if is_complete() then
             x, y = get()
             love.graphics.polygon('line', player)
             -- love.graphics.circle('fill', x, y, 5)

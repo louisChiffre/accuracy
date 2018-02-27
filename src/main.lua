@@ -193,6 +193,26 @@ function update_running_stats(result)
     STATS.last = result
 end
 
+function love.mousemoved( x, y, dx, dy, istouch )
+    if TRAINING_TYPE['mousemoved'] then 
+        TRAINING_TYPE.mousemoved( x, y, dx, dy, istouch )
+    end
+end
+function love.mousemoved( x, y, dx, dy, istouch )
+    if TRAINING_TYPE['mousemoved'] then 
+        if is_complete() then 
+            TRAINING_TYPE.mousemoved( x, y, dx, dy, istouch )
+        else
+            TRAINING_TYPE.mousemoved( x, y, dx, dy, istouch )
+        end
+    end
+end
+
+function love.mousepressed( x, y, button, istouch )
+    if TRAINING_TYPE['mousepressed'] then 
+        TRAINING_TYPE.mousepressed( x, y, button, istouch )
+    end
+end
 
 function love.keypressed( key, scancode, isrepeat )
     if scancode == "s" then
