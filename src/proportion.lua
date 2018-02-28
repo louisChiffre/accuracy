@@ -51,6 +51,22 @@ function M.update(dt)
 
 end
 
+function M.mousemoved( x, y, dx, dy, istouch )
+    if player_state == PLAY then
+        width, height = mouse2world(x, y)
+        if is_mouse_in_player_space(width, height) then
+            if fixed_side == 'width' then 
+                player_square.height = height
+            else
+                player_square.width = width
+            end
+            love.mouse.setVisible(false)
+        else
+            love.mouse.setVisible(true)
+        end
+    end
+end
+
 function get_scaled_square()
     if fixed_side == 'width' then 
         ratio = reference_square.width/player_square.width

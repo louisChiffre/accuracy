@@ -1,10 +1,4 @@
 local M = {}
-mouse ={}
-
-
-function makeCircle()
-    return {radius= 50}
-end
 
 function make_random_base()
     H = love.math.random(300, 0.9*LENGTH) 
@@ -71,7 +65,9 @@ end
 function M.mousemoved( x, y, dx, dy, istouch )
     if player_state == PLAY then
         x, y = mouse2world(x, y)
-        set(x, y)
+        if is_mouse_in_player_space(x, y) then
+            set(x, y)
+        end
     end
 end
 
@@ -151,13 +147,6 @@ function draw_filled_polygon(polygon)
             end
         end
     end
-end
-
-function mouse2world(x,y )
-    return x - PLAYER_ORIGIN.x, y - PLAYER_ORIGIN.y
-end
-function world2mouse(x,y )
-    return x + PLAYER_ORIGIN.x, y + PLAYER_ORIGIN.y
 end
 
 function M.draw_player()

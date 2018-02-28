@@ -74,7 +74,7 @@ function love.load()
 
 
     TRAINING_TYPES = {}
-    TRAINING_TYPES_NAMES =   {'blob', 'square', 'circle', 'proportion'}
+    TRAINING_TYPES_NAMES =   {'circle', 'blob', 'square', 'proportion'}
     for i ,training_type in ipairs(TRAINING_TYPES_NAMES) do
         TRAINING_TYPES[i] = require(training_type)
         TRAINING_TYPES[i].name = training_type -- to be able to add type to result
@@ -198,19 +198,29 @@ function love.mousemoved( x, y, dx, dy, istouch )
         TRAINING_TYPE.mousemoved( x, y, dx, dy, istouch )
     end
 end
-function love.mousemoved( x, y, dx, dy, istouch )
-    if TRAINING_TYPE['mousemoved'] then 
-        if is_complete() then 
-            TRAINING_TYPE.mousemoved( x, y, dx, dy, istouch )
-        else
-            TRAINING_TYPE.mousemoved( x, y, dx, dy, istouch )
-        end
-    end
-end
 
 function love.mousepressed( x, y, button, istouch )
     if TRAINING_TYPE['mousepressed'] then 
         TRAINING_TYPE.mousepressed( x, y, button, istouch )
+    else
+        if button==LEFT_CLICK_BUTTON then
+            start()
+        end
+    end
+end
+
+function start()
+    if player_state == PLAY then
+        result = TRAINING_TYPE.evaluate()
+        result.type = TRAINING_TYPE.name
+        update_running_stats(result)
+        save(result)
+        player_state = EVALUATE
+    elseif player_state == EVALUATE then
+        if IS_RANDOM then
+            TRAINING_TYPE = get_randome_training_type()
+        end
+        initialize_state()
     end
 end
 
@@ -220,10 +230,15 @@ function love.keypressed( key, scancode, isrepeat )
     end
 
     if scancode == "r" then
-        IS_RANDOM = true
-        print('Random mode enabled')
-        TRAINING_TYPE = get_randome_training_type()
-        initialize_state()
+        if IS_RANDOM then
+            IS_RANDOM = false
+            print('Random mode disabled')
+        else
+            IS_RANDOM = true
+            print('Random mode enabled')
+            TRAINING_TYPE = get_randome_training_type()
+            initialize_state()
+        end
     end
 
     -- if keypressed is available call it
@@ -233,16 +248,7 @@ function love.keypressed( key, scancode, isrepeat )
 
 
     if scancode == "space" then
-        if player_state == PLAY then
-            result = TRAINING_TYPE.evaluate()
-            result.type = TRAINING_TYPE.name
-            update_running_stats(result)
-            save(result)
-            player_state = EVALUATE
-        elseif player_state == EVALUATE then
-            TRAINING_TYPE = get_randome_training_type()
-            initialize_state()
-        end
+        start()
     end
 
     num = tonumber(scancode)
@@ -382,3 +388,19 @@ end
 function get_player_color()
     return state2color[player_state]
 end
+
+function mouse2world(x,y )
+    return x - PLAYER_ORIGIN.x, y - PLAYER_ORIGIN.y
+end
+function world2mouse(x,y )
+    return x + PLAYER_ORIGIN.x, y + PLAYER_ORIGIN.y
+end
+
+function is_mouse_in_player_space(x, y)
+    return (x < 1.5*LENGTH) and 
+            (y < 1.5*LENGTH) and
+            (y > -0.5*LENGTH) and
+            (x > -0.5*LENGTH)
+end
+
+

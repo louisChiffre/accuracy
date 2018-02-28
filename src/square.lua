@@ -29,6 +29,19 @@ function M.update(dt)
     end
 end
 
+function M.mousemoved( x, y, dx, dy, istouch )
+    if player_state == PLAY then
+        width, height = mouse2world(x, y)
+        if is_mouse_in_player_space(width, height) then
+            player_square.width = width
+            player_square.height = height
+            love.mouse.setVisible(false)
+        else
+            love.mouse.setVisible(true)
+        end
+    end
+end
+
 function M.evaluate()
     return evaluate_square(player_square, reference_square)
 end

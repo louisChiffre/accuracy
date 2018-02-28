@@ -27,7 +27,23 @@ function M.update(dt)
     end
 end
 
+
+
+
 local CIRCLE_CENTER = {x=LENGTH*0.5, y=LENGTH*0.5}
+
+function M.mousemoved( x, y, dx, dy, istouch )
+    if player_state == PLAY then
+        x, y = mouse2world(x, y)
+        local radius =math.sqrt((x-CIRCLE_CENTER.x)^2 + (y-CIRCLE_CENTER.y)^2)
+        if radius < LENGTH * 0.5 then
+            player_circle.radius = radius 
+            love.mouse.setVisible(false)
+        else
+            love.mouse.setVisible(true)
+        end
+    end
+end
 
 function M.draw_reference()
     love.graphics.setColor(REFERENCE_COLOR)
