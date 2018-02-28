@@ -1,3 +1,4 @@
+INFO = {}
 function get_stats()
     filename = FILENAME
     local JSON = require "JSON"
@@ -37,15 +38,15 @@ function save(result)
 end
 
 
-
-
-
 function update_noop(dt)
 end
 
 
 function love.load()
+    set_info('Session Started')
     FILENAME = "stats.json"
+    print(string.format('File will be saved in directory %s',
+        love.filesystem.getSaveDirectory()))
     BORDER = 10
     WIDTH = 640
     HEIGHT = 640
@@ -232,12 +233,10 @@ function love.keypressed( key, scancode, isrepeat )
     if scancode == "r" then
         if IS_RANDOM then
             IS_RANDOM = false
-            print('Random mode disabled')
+            set_info('Random mode disabled')
         else
             IS_RANDOM = true
-            print('Random mode enabled')
-            TRAINING_TYPE = get_randome_training_type()
-            initialize_state()
+            set_info('Random mode enabled')
         end
     end
 
@@ -301,6 +300,11 @@ function set_fps_viewport()
     love.graphics.translate(w - 60, 20)
 end
 
+function set_info_viewport()
+    w, h = love.graphics.getDimensions()
+    love.graphics.translate(w/2, 20)
+end
+
 function shuffle_player_position()
     w, h = love.graphics.getDimensions()
     PLAYER_ORIGIN = {
@@ -310,6 +314,11 @@ function shuffle_player_position()
 end
 
 function love.draw()
+
+    set_info_viewport()
+    draw_info()
+    love.graphics.origin()
+
     set_fps_viewport()
     love.graphics.print('FPS:'..tostring(love.timer.getFPS( )), 1, 1)
     love.graphics.origin()
@@ -403,4 +412,14 @@ function is_mouse_in_player_space(x, y)
             (x > -0.5*LENGTH)
 end
 
+
+function set_info(txt)
+    INFO = {txt=txt, timestamp=love.timer.getTime()}
+end
+
+function draw_info(txt)
+    if INFO.txt then
+        love.graphics.print(INFO.txt)
+    end
+end
 
